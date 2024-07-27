@@ -1,0 +1,172 @@
+      org   0000h
+      MOV   P1,#00H ;CORRECT PIN '01'
+      MOV   P2,#00H
+      MOV   TMOD,#21H ;ENABLING TIMER 0 AND TIMER 1
+LIN:MOV P1,#38H ;LCD INITIALIZATION
+    ACALL CMD
+    MOV P1,#0FH
+    ACALL CMD
+    MOV P1,#01H
+    ACALL CMD
+START1:MOV TH1, #0FDH
+       MOV SCON, #50H
+       MOV B,00H
+       CLR TI
+       SETB TR1
+       MOV P1,#01H
+       ACALL CMD
+       ACALL DELAY
+       MOV P1,#50H
+       ACALL DAT
+       ACALL DELAY
+       ACALL DELAY
+       MOV P1,#49H
+       ACALL DAT
+       ACALL DELAY
+       ACALL DELAY
+       MOV P1,#4EH
+       ACALL DAT
+       ACALL DELAY
+       MOV P1,#3AH
+       ACALL DAT
+       ACALL DELAY
+START:ACALL AGAIN
+      MOV P1,#23H
+      ACALL DAT
+      ACALL DELAY
+      MOV A, SBUF
+      MOV R0,A
+      ACALL AGAIN
+      MOV P1,#23H
+      ACALL DAT
+      ACALL DELAY
+      MOV A, SBUF
+      MOV R1,A
+      ACALL CHECK
+      SJMP UNLOCK
+AGAIN:CLR RI
+REPEAT:JNB RI, REPEAT
+       RET
+CHECK:CJNE R0,#30H, WRONG
+      CJNE R1, #31H, WRONG
+      RET
+      
+WRONG:MOV P1,#01H
+      ACALL CMD
+      ACALL DELAY
+      MOV P1,#57H
+      ACALL DAT
+      MOV P1,#52H
+      ACALL DAT
+      MOV P1,#4FH
+      ACALL DAT
+      MOV P1,#4EH
+      ACALL DAT
+      MOV P1,#47H
+      ACALL DAT
+      MOV P1,#00H
+      ACALL DAT
+      MOV P1,#50H
+      ACALL DAT
+      MOV P1,#49H
+      ACALL DAT
+      MOV P1,#4EH
+      ACALL DAT
+      ACALL RE_SET
+      ACALL DELAY
+LOOP1:JB P3.7,LOOP1
+      JMP START1
+      
+UNLOCK:MOV P1,#01H
+      ACALL CMD
+      ACALL DELAY
+      MOV P1,#55H
+      ACALL DAT
+      ACALL DELAY
+      MOV P1,#4EH
+      ACALL DAT
+      ACALL DELAY
+      MOV P1,#6CH
+      ACALL DAT
+      ACALL DELAY
+      MOV P1,#4FH
+      ACALL DAT
+      ACALL DELAY
+      MOV P1,#43H
+      ACALL DAT
+      ACALL DELAY
+      MOV P1,#4BH
+      ACALL DAT
+      ACALL DELAY
+      MOV P1,#45H
+      ACALL DAT
+      ACALL DELAY
+      MOV P1,#44H
+      ACALL DAT
+      MOV TH0, #0F8H 
+      MOV TL0, #0CCH 
+      SETB P3.6 
+      SETB TR0
+WAIT2:JNB TF0, WAIT2  
+      CLR P3.6 
+      CLR TF0 
+      CLR TR0
+      ACALL RE_SET
+LOOP: JB P3.7,LOOP
+      MOV TH0,#0ffH 
+      MOV TL0,#66H  
+      SETB TR0
+      SETB P3.6
+      WAIT:JNB TF0, WAIT
+      CLR P3.6 
+      CLR TF0 
+      CLR TR0
+LOOP2:JNB P3.7,LOOP2
+      JMP START1
+     
+CMD:CLR P2.0
+    CLR P2.1
+    SETB P2.2
+    ACALL DELAY
+    CLR P2.2
+    RET 
+    
+DAT:SETB P2.0
+     CLR P2.1
+     SETB P2.2
+     ACALL DELAY
+     CLR P2.2
+     RET 
+
+RE_SET:MOV P1,#0C0H
+      ACALL CMD
+      MOV P1,#'P'
+      ACALL DAT
+      MOV P1,#'R'
+      ACALL DAT
+      MOV P1,#'E'
+      ACALL DAT
+      MOV P1,#'S'
+      ACALL DAT
+      MOV P1,#'S'
+      ACALL DAT
+      MOV P1,#00H
+      ACALL DAT
+      MOV P1,#'R'
+      ACALL DAT
+      MOV P1,#'E'
+      ACALL DAT
+      MOV P1,#'S'
+      ACALL DAT
+      MOV P1,#'E'
+      ACALL DAT
+      MOV P1,#'T'
+      ACALL DAT
+      RET
+     
+DELAY:MOV R2,#64H 
+      L2:MOV R3,#64H
+      L3:DJNZ R3,L3
+      DJNZ R2,L2
+      RET
+      END
